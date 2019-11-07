@@ -380,23 +380,38 @@ void StartLowPWR_Task(void const * argument)
 {
   /* USER CODE BEGIN StartLowPWR_Task */
   /* Infinite loop */
-	while ((Global_16V<LPWR_MIN) && (Blocked_by_Perek==0)) {
+
+   uint32_t lpwr_stamp=0;
+
+	while (((Global_16V<LPWR_MIN) || (Global_16V>LPWR_MAX)) && (Blocked_by_Perek==0) ) {
 		  Blocked_by_LPWR=1;
 		  osDelay(3000);
-	  }
+	}
+
+	Blocked_by_LPWR=0;
 
   for(;;)
   {
 	   if (Blocked_by_Perek==1) {
 		   Blocked_by_LPWR=0;
+		   lpwr_stamp=0;
 	   } else {
 		   if ((Global_16V<LPWR_MIN) || (Global_16V>LPWR_MAX))  {
-			   Blocked_by_LPWR=1;
-		   } else {
-			   if (Blocked_by_LPWR==1) {
-				   osDelay(5000);
+			   if ((lpwr_stamp==0) && (Blocked_by_LPWR==0)) {
+			   	lpwr_stamp=xTaskGetTickCount();
 			   }
-			   Blocked_by_LPWR=0;
+			   if (CheckStamp(lpwr_stamp,LPWR_DELAY_LENGTH)==1) {
+				   Blocked_by_LPWR=1;
+				   lpwr_stamp=0;
+			   }
+		   } else {
+			   if ((lpwr_stamp==0) && (Blocked_by_LPWR==1)) {
+				   lpwr_stamp=xTaskGetTickCount();
+			   }
+			   if (CheckStamp(lpwr_stamp,LPWR_DELAY_LENGTH)==1) {
+				    Blocked_by_LPWR=0;
+			   		lpwr_stamp=0;
+			   }
 		   }
 	  }
     osDelay(1);

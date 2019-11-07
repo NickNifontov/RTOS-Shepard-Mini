@@ -72,10 +72,13 @@ extern volatile uint8_t Blocked_by_LPWR;
 #define BUZZER_MAX_LENGTH 10 //sec
 #define AB_MAX_LENGTH 10 //sec
 #define TEMP_DELAY_LENGTH 10 //sec
+#define LPWR_DELAY_LENGTH 1 //sec
 
 void ShutDown_with_Power_Off(void);
 void ShutDown_with_Power_On(void);
 void Enable_INV(void);
+
+uint8_t CheckStamp(uint32_t time_stamp, uint8_t time_base);
 
 /* ==============   BOARD GLOBAL VAR END      ============== */
 

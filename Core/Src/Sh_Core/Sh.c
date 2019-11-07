@@ -94,3 +94,11 @@ void Enable_INV(void) {
 	HAL_GPIO_WritePin(GPIOA, BLOCK_PORT_1_Pin, GPIO_PIN_RESET); // Unblock 8V
 	HAL_GPIO_WritePin(GPIOA, BLOCK_PORT_2_Pin, GPIO_PIN_RESET); // Unblock PWM
 }
+
+uint8_t CheckStamp(uint32_t time_stamp, uint8_t time_base) {
+	if (xTaskGetTickCount()-time_stamp>time_base*1000) {
+		return 1;
+	} else {
+		return 0;
+	}
+}
