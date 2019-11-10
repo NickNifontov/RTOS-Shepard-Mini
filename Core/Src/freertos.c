@@ -53,6 +53,7 @@ osThreadId Cooler_TaskHandle;
 osThreadId AB_TaskHandle;
 osThreadId TEMP_TaskHandle;
 osThreadId LowPWR_TaskHandle;
+osThreadId CUR_TaskHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -66,6 +67,7 @@ void StartCooler_Task(void const * argument);
 void StartAB_Task(void const * argument);
 void StartTEMP_Task(void const * argument);
 void StartLowPWR_Task(void const * argument);
+void StartCUR_Task(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -117,28 +119,32 @@ void MX_FREERTOS_Init(void) {
   Loop_TaskHandle = osThreadCreate(osThread(Loop_Task), NULL);
 
   /* definition and creation of LED_Task */
-  osThreadDef(LED_Task, StartLED_Task, osPriorityBelowNormal, 0, 128);
+  osThreadDef(LED_Task, StartLED_Task, osPriorityNormal, 0, 128);
   LED_TaskHandle = osThreadCreate(osThread(LED_Task), NULL);
 
   /* definition and creation of Buzzer_Task */
-  osThreadDef(Buzzer_Task, StartBuzzer_Task, osPriorityBelowNormal, 0, 128);
+  osThreadDef(Buzzer_Task, StartBuzzer_Task, osPriorityNormal, 0, 128);
   Buzzer_TaskHandle = osThreadCreate(osThread(Buzzer_Task), NULL);
 
   /* definition and creation of Cooler_Task */
-  osThreadDef(Cooler_Task, StartCooler_Task, osPriorityBelowNormal, 0, 128);
+  osThreadDef(Cooler_Task, StartCooler_Task, osPriorityNormal, 0, 128);
   Cooler_TaskHandle = osThreadCreate(osThread(Cooler_Task), NULL);
 
   /* definition and creation of AB_Task */
-  osThreadDef(AB_Task, StartAB_Task, osPriorityBelowNormal, 0, 128);
+  osThreadDef(AB_Task, StartAB_Task, osPriorityNormal, 0, 128);
   AB_TaskHandle = osThreadCreate(osThread(AB_Task), NULL);
 
   /* definition and creation of TEMP_Task */
-  osThreadDef(TEMP_Task, StartTEMP_Task, osPriorityBelowNormal, 0, 128);
+  osThreadDef(TEMP_Task, StartTEMP_Task, osPriorityNormal, 0, 128);
   TEMP_TaskHandle = osThreadCreate(osThread(TEMP_Task), NULL);
 
   /* definition and creation of LowPWR_Task */
-  osThreadDef(LowPWR_Task, StartLowPWR_Task, osPriorityBelowNormal, 0, 128);
+  osThreadDef(LowPWR_Task, StartLowPWR_Task, osPriorityNormal, 0, 128);
   LowPWR_TaskHandle = osThreadCreate(osThread(LowPWR_Task), NULL);
+
+  /* definition and creation of INV_Task */
+  osThreadDef(CUR_Task, StartCUR_Task, osPriorityNormal, 0, 128);
+  CUR_TaskHandle = osThreadCreate(osThread(CUR_Task), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -158,22 +164,66 @@ void StartLoop_Task(void const * argument)
   /* USER CODE BEGIN StartLoop_Task */
   /* Infinite loop */
 
+  uint32_t restart_stamp=0;
+
+  INV_STATE=0;
   ShutDown_with_Power_Off();
 
   /* ###  - Start conversion in DMA mode ################################# */
   HAL_ADC_Start_DMA(&hadc,(uint32_t *)aADCxConvertedData,ADC_CONVERTED_DATA_BUFFER_SIZE);
 
+  /* ###  - Start COMP ################################# */
+  HAL_COMP_Start(&hcomp2);
+
   HAL_GPIO_EXTI_Callback(SD_Pin);
 
   for(;;)
   {
-	if ((Blocked_by_AB==0) && (Blocked_by_Perek==0) && (Blocked_by_PVD==0) && (Blocked_by_TEMP==0)) {
-		Enable_INV();
+	if ((Blocked_by_AB==0) && (Blocked_by_Perek==0) && (Blocked_by_PVD==0) && (Blocked_by_TEMP==0)
+			&& (Blocked_by_Klapan==0) && (Blocked_by_150==0) ) {
+		if (INV_STATE!=1) {
+			INV_STATE=1;
+			Enable_INV();
+		}
+		KLAPAN_SIGN=0;
+		restart_stamp=0;
 	} else {
-		ShutDown_with_Power_Off();
+		if (INV_STATE!=0) {
+			INV_STATE=0;
+			restart_stamp=0;
+			ShutDown_with_Power_On();
+					if ((Blocked_by_Klapan==1) && (Blocked_by_150==1)) {
+						HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_SET);
+					}
+		}
+		if ( (Blocked_by_Klapan==1) && (KLAPAN_SIGN==0)) {
+			KLAPAN_SIGN=1;
+			LED_Blink_X(BUZZER_GPIO_Port,BUZZER_Pin,10,300);
+		}
+		if ( (Blocked_by_150==1) && (KLAPAN_SIGN==0)) {
+			KLAPAN_SIGN=1;
+			LED_Blink_X(BUZZER_GPIO_Port,BUZZER_Pin,10,1);
+		}
+		if ((Blocked_by_AB==0) && (Blocked_by_PVD==0) && (Blocked_by_TEMP==0)
+				&& (Blocked_by_Perek==1) ) {
+			if (restart_stamp==0) {
+				restart_stamp=xTaskGetTickCount();
+			}
+
+					if (CheckStamp(restart_stamp,RESTART_MAX_LENGTH)==1) {
+						HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_SET);
+						Blocked_by_Klapan=0;
+						Blocked_by_150=0;
+						osDelay(1000);
+						HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_RESET);
+					}
+
+		} else {
+			restart_stamp=0;
+		}
 	}
-	IWDG_Reset();
-    osDelay(1);
+
+	taskYIELD();
   }
   /* USER CODE END StartLoop_Task */
 }
@@ -186,30 +236,29 @@ void StartLoop_Task(void const * argument)
 */
 /* USER CODE END Header_StartLED_Task */
 
-extern volatile uint8_t Blocked_by_AB;
-
-extern volatile uint8_t Blocked_by_Perek;
-
-extern volatile uint8_t Blocked_by_PVD;
-
-
 void StartLED_Task(void const * argument)
 {
   /* USER CODE BEGIN StartLED_Task */
   /* Infinite loop */
   for(;;)
   {
+	// RESET IWDG
+	IWDG_Reset();
+
+	// STAT LED
 	if ((Blocked_by_AB==1) || (Blocked_by_LPWR==1) || (Blocked_by_PVD==1) || (Blocked_by_TEMP==1)) {
 		LED_Blink(LED_1_GPIO_Port,LED_1_Pin,10);
 		osDelay(100);
 	} else {
 			if (Blocked_by_Perek==1) {
-				LED_Blink(LED_1_GPIO_Port,LED_1_Pin,10);
+				LED_Blink_X(LED_1_GPIO_Port,LED_1_Pin,1,10);
+				osDelay(1000);
 			} else {
-				LED_Blink_X(LED_1_GPIO_Port,LED_1_Pin,3,10);
+				LED_Blink(LED_1_GPIO_Port,LED_1_Pin,500);
+				osDelay(500);
 			}
-			osDelay(1000);
 	}
+
   }
   /* USER CODE END StartLED_Task */
 }
@@ -225,7 +274,6 @@ void StartBuzzer_Task(void const * argument)
 {
   /* USER CODE BEGIN StartBuzzer_Task */
   /* Infinite loop */
-
   uint32_t buzzer_stamp=xTaskGetTickCount();
 
   while ((Global_AB<AB_COLDRUN) && (Blocked_by_Perek==0))  {
@@ -247,7 +295,7 @@ void StartBuzzer_Task(void const * argument)
 				if (buzzer_stamp==0) {
 					buzzer_stamp=xTaskGetTickCount();
 				}
-				if (xTaskGetTickCount()-buzzer_stamp<=BUZZER_MAX_LENGTH*1000) {
+				if (CheckStamp(buzzer_stamp,BUZZER_MAX_LENGTH)==0) {
 					LED_Blink_X(BUZZER_GPIO_Port,BUZZER_Pin,3,300);
 				}
 				osDelay(2500);
@@ -257,7 +305,7 @@ void StartBuzzer_Task(void const * argument)
 				buzzer_stamp=0;
 			}
 
-    osDelay(1);
+			osDelay(1);
 
   }
   /* USER CODE END StartBuzzer_Task */
@@ -274,9 +322,55 @@ void StartCooler_Task(void const * argument)
 {
   /* USER CODE BEGIN StartCooler_Task */
   /* Infinite loop */
+  uint32_t cooler_stamp=0;
+
+  HAL_TIM_PWM_Start(&htim2, TIM_CHANNEL_1) ;
+  osDelay(1000);
+
   for(;;)
   {
-    osDelay(1);
+	if (Blocked_by_TEMP==1) {
+		__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, PULSE100_VALUE);
+		cooler_stamp=0;
+		osDelay(10000);
+	} else {
+		if (Blocked_by_Perek==1) {
+			if ((Global_TEMP>TEMP_ROLLBACK) && (Global_TEMP<TEMP_COLRSTART)) {
+				__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, PULSE20_VALUE);
+				cooler_stamp=0;
+			}
+			if (Global_TEMP>=TEMP_COLRSTART) {
+				__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, PULSE40_VALUE);
+				cooler_stamp=0;
+			}
+			if ((Global_TEMP<=TEMP_ROLLBACK) && (__HAL_TIM_GET_COMPARE(&htim2, TIM_CHANNEL_1)!=0)) {
+				if (cooler_stamp==0) {
+					cooler_stamp=xTaskGetTickCount();
+				}
+				if (CheckStamp(cooler_stamp,COOLER_MAX_LENGTH)==1)  {
+					__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, 0);
+					cooler_stamp=0;
+					LED_Blink_X(BUZZER_GPIO_Port,BUZZER_Pin,4,100);
+				}
+			}
+			osDelay(1000);
+		} else {
+			if ((Global_Power>=50) || (Global_TEMP>TEMP_COLRSTART)) {
+				__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, PULSE100_VALUE);
+				cooler_stamp=0;
+			} else {
+				if ( ((Global_Power>=25) && (Global_Power<50)) || ((Global_TEMP>TEMP_ROLLBACK) && (Global_TEMP<TEMP_COLRSTART))) {
+					__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, PULSE70_VALUE);
+					cooler_stamp=0;
+				} else {
+					__HAL_TIM_SET_COMPARE(&htim2, TIM_CHANNEL_1, PULSE40_VALUE);
+					cooler_stamp=0;
+				}
+			}
+			osDelay(3000);
+		}
+	}
+	taskYIELD();
   }
   /* USER CODE END StartCooler_Task */
 }
@@ -292,23 +386,19 @@ void StartAB_Task(void const * argument)
 {
   /* USER CODE BEGIN StartAB_Task */
   /* Infinite loop */
-	while ((Global_AB<AB_COLDRUN) && (Blocked_by_Perek==0)) {
+  uint32_t ab_stamp=0;
+	while ( (Global_AB<AB_COLDRUN) && (Blocked_by_Perek==0)) {
 		  Blocked_by_AB=1;
-		  osDelay(3000);
+		  osDelay(1000);
 	  }
 
-  uint32_t ab_stamp=0;
-
-  if (Global_AB>AB_LOW) {
-	  Blocked_by_AB=0;
-  } else {
-	  Blocked_by_AB=1;
-  }
+  Blocked_by_AB=0;
 
   for(;;)
   {
 	if ( (Blocked_by_AB==0) && ((Global_AB<=AB_LOW)  || (Global_AB>=AB_MAX) ) ) {
 		Blocked_by_AB=1;
+		ab_stamp=0;
 		LED_Blink_X(BUZZER_GPIO_Port,BUZZER_Pin,4,100);
 		osDelay(3000);
 	}
@@ -316,7 +406,7 @@ void StartAB_Task(void const * argument)
 		if (ab_stamp==0) {
 			ab_stamp=xTaskGetTickCount();
 		}
-		if ((xTaskGetTickCount()-ab_stamp>AB_MAX_LENGTH*1000) || (Blocked_by_Perek==1)) {
+		if ((CheckStamp(ab_stamp,AB_MAX_LENGTH)==1) || (Blocked_by_Perek==1)) {
 			 Blocked_by_AB=0;
 			 ab_stamp=0;
 			 LED_Blink_X(BUZZER_GPIO_Port,BUZZER_Pin,4,100);
@@ -325,7 +415,7 @@ void StartAB_Task(void const * argument)
 		ab_stamp=0;
 	}
 
-    osDelay(1);
+	taskYIELD();
   }
   /* USER CODE END StartAB_Task */
 }
@@ -341,12 +431,15 @@ void StartTEMP_Task(void const * argument)
 {
   /* USER CODE BEGIN StartTEMP_Task */
   /* Infinite loop */
-	while (Global_TEMP>=TEMP_COLRSTART) {
+  uint32_t temp_stamp=0;
+
+  while (Global_TEMP>=TEMP_COLRSTART) {
 		  Blocked_by_TEMP=1;
-		  osDelay(3000);
-	  }
-	Blocked_by_TEMP=0;
-	uint32_t temp_stamp=0;
+		  osDelay(1000);
+  }
+
+  Blocked_by_TEMP=0;
+
   for(;;)
   {
 	    if (Global_TEMP<TEMP_MAX) {
@@ -354,17 +447,20 @@ void StartTEMP_Task(void const * argument)
 			  if (temp_stamp==0) {
 				  temp_stamp=xTaskGetTickCount();
 			  }
-			  if (xTaskGetTickCount()-temp_stamp>TEMP_DELAY_LENGTH*1000) {
-						 Blocked_by_TEMP=0;
-						 temp_stamp=0;
-			  }
+			  if (CheckStamp(temp_stamp,TEMP_DELAY_LENGTH)==1) {
+				  Blocked_by_TEMP=0;
+				  temp_stamp=0;
+			 }
 		  } else {
 			  Blocked_by_TEMP=0;
+			  temp_stamp=0;
 		  }
 	    } else {
 	  	  Blocked_by_TEMP=1;
+	  	  temp_stamp=0;
+	  	  osDelay(TEMP_ROLLBACK_DELAY_LENGTH*1000); //sec
 	    }
-	    osDelay(1000);
+	    taskYIELD();
   }
   /* USER CODE END StartTEMP_Task */
 }
@@ -380,12 +476,11 @@ void StartLowPWR_Task(void const * argument)
 {
   /* USER CODE BEGIN StartLowPWR_Task */
   /* Infinite loop */
-
    uint32_t lpwr_stamp=0;
 
 	while (((Global_16V<LPWR_MIN) || (Global_16V>LPWR_MAX)) && (Blocked_by_Perek==0) ) {
 		  Blocked_by_LPWR=1;
-		  osDelay(3000);
+		  osDelay(1000);
 	}
 
 	Blocked_by_LPWR=0;
@@ -414,9 +509,59 @@ void StartLowPWR_Task(void const * argument)
 			   }
 		   }
 	  }
-    osDelay(1);
+	  taskYIELD();
   }
   /* USER CODE END StartLowPWR_Task */
+}
+
+
+/* USER CODE BEGIN Header_StartCUR_Task */
+/**
+* @brief Function implementing the LowPWR_Task thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END StartCUR_Task */
+void StartCUR_Task(void const * argument)
+{
+  /* USER CODE BEGIN StartLowPWR_Task */
+  /* Infinite loop */
+
+  for(;;)
+  {
+	  if (Global_CURR>=POLKA_75) {
+		  Global_Power=100;
+	  }
+	  if ((Global_CURR>=POLKA_50) && (Global_CURR<POLKA_75)) {
+	  		 Global_Power=70;
+	  }
+	  if ((Global_CURR>=POLKA_25) && (Global_CURR<POLKA_50)) {
+	  	  	Global_Power=40;
+	  }
+	  if (Global_CURR<POLKA_25)  {
+	  	  Global_Power=20;
+	  }
+
+		// CUR LED
+			  	if ((Global_Power>75) || (Blocked_by_Klapan==1) || (Blocked_by_150==1)) {
+			  		HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_SET);
+			  	} else {
+					if ((Global_Power<75) && (Global_Power>=50)) {
+						LED_Blink(LED_2_GPIO_Port,LED_2_Pin,500);
+						osDelay(500);
+					}
+					if ((Global_Power<50) && (Global_Power>=25)) {
+						LED_Blink(LED_2_GPIO_Port,LED_2_Pin,10);
+						osDelay(1000);
+					}
+					if (Global_Power<25) {
+						HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
+					}
+			  	}
+
+	  taskYIELD();
+  }
+  /* USER CODE END StartCUR_Task */
 }
 
 /* Private application code --------------------------------------------------*/

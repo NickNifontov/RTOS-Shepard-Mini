@@ -20,6 +20,8 @@
 #include "gpio.h"
 #include "sys.h"
 
+#include "stm32l031xx.h"
+
 
 #include "Sh_Cfg.h"
 #include "Sh_LED.h"
@@ -38,7 +40,7 @@ void Enable_SH_DEBUG(void);
 /* Variable containing ADC conversions data */
 extern volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
 
-#define BUZZER_OPORA 1620 // 1.0V
+#define BUZZER_OPORA 550 // 1.0V - 0.2V
 #define BUZZER_OPORA_MIN ((uint16_t) (BUZZER_OPORA*0.995))
 #define BUZZER_OPORA_MAX ((uint16_t) (BUZZER_OPORA*1.005))
 
@@ -48,13 +50,16 @@ extern volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
 #define AB_COLDRUN ((uint16_t) (BUZZER_OPORA*1.05))
 #define AB_COLDRUN_FROM_MAX ((uint16_t) (AB_MAX*0.95))
 
-#define TEMP_MAX 1800 // celsium
-#define TEMP_COLRSTART 1340
-#define TEMP_ROLLBACK 1290
+#define TEMP_MAX 2580 // celsium
+#define TEMP_COLRSTART 2200
+#define TEMP_ROLLBACK 2100
+
+extern volatile uint8_t Global_Power;
 
 extern volatile uint16_t Global_AB;
 extern volatile uint16_t Global_16V;
 extern volatile uint16_t Global_TEMP;
+extern volatile uint16_t Global_CURR;
 
 extern volatile uint8_t Blocked_by_AB;
 
@@ -64,6 +69,20 @@ extern volatile uint8_t Blocked_by_PVD;
 
 extern volatile uint8_t Blocked_by_TEMP;
 
+extern volatile uint8_t Blocked_by_Klapan;
+extern volatile uint8_t Blocked_by_150;
+
+extern volatile uint8_t INV_STATE;
+
+extern volatile uint8_t KLAPAN_SIGN;
+
+#define POLKA_LEVEL (uint16_t) (400)
+#define POLKA_120 ((uint16_t)  (POLKA_LEVEL*1.2))
+#define POLKA_105 ((uint16_t)  (POLKA_LEVEL*1.05))
+#define POLKA_25 ((uint16_t)  (POLKA_LEVEL*0.25))
+#define POLKA_50 ((uint16_t)  (POLKA_LEVEL*0.5))
+#define POLKA_75 ((uint16_t)  (POLKA_LEVEL*0.75))
+
 
 #define LPWR_MIN  1100
 #define LPWR_MAX  2100
@@ -71,12 +90,22 @@ extern volatile uint8_t Blocked_by_LPWR;
 
 #define BUZZER_MAX_LENGTH 10 //sec
 #define AB_MAX_LENGTH 10 //sec
+#define COOLER_MAX_LENGTH 10 //sec
 #define TEMP_DELAY_LENGTH 10 //sec
-#define LPWR_DELAY_LENGTH 1 //sec
+#define TEMP_ROLLBACK_DELAY_LENGTH 10 //sec
+#define LPWR_DELAY_LENGTH 2 //sec
+#define RESTART_MAX_LENGTH 10 //sec
 
 void ShutDown_with_Power_Off(void);
 void ShutDown_with_Power_On(void);
 void Enable_INV(void);
+
+#define  COOLER_PRESCALER	(uint32_t)(0)  /* PRESCALER Value  */
+#define  COOLER_PERIOD_VALUE       (uint32_t)(31999)  /* Period Value  */
+#define  PULSE100_VALUE       (uint32_t)(COOLER_PERIOD_VALUE)        /* 100% */
+#define  PULSE70_VALUE       (uint32_t)(COOLER_PERIOD_VALUE*70/100)        /* 70% */
+#define  PULSE40_VALUE       (uint32_t)(COOLER_PERIOD_VALUE*40/100) /* 40%  */
+#define  PULSE20_VALUE       (uint32_t)(COOLER_PERIOD_VALUE*20/100)        /* 20% */
 
 uint8_t CheckStamp(uint32_t time_stamp, uint8_t time_base);
 

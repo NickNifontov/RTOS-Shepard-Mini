@@ -176,8 +176,8 @@ void ADC1_COMP_IRQHandler(void)
   /* USER CODE BEGIN ADC1_COMP_IRQn 0 */
 
   /* USER CODE END ADC1_COMP_IRQn 0 */
-  HAL_ADC_IRQHandler(&hadc);
   HAL_COMP_IRQHandler(&hcomp2);
+  HAL_ADC_IRQHandler(&hadc);
   /* USER CODE BEGIN ADC1_COMP_IRQn 1 */
 
   /* USER CODE END ADC1_COMP_IRQn 1 */
