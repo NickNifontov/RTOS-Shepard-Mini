@@ -193,7 +193,8 @@ void StartLoop_Task(void const * argument)
 			restart_stamp=0;
 			ShutDown_with_Power_On();
 					if ((Blocked_by_Klapan==1) && (Blocked_by_150==1)) {
-						HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_SET);
+						//HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_SET);
+						GPIOB->BSRR  = GPIO_BSRR_BS_1;
 					}
 		}
 		if ( (Blocked_by_Klapan==1) && (KLAPAN_SIGN==0)) {
@@ -211,11 +212,13 @@ void StartLoop_Task(void const * argument)
 			}
 
 					if (CheckStamp(restart_stamp,RESTART_MAX_LENGTH)==1) {
-						HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_SET);
+						//HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_SET);
+						GPIOB->BSRR  = GPIO_BSRR_BS_1;
 						Blocked_by_Klapan=0;
 						Blocked_by_150=0;
 						osDelay(1000);
-						HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_RESET);
+						//HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_RESET);
+						GPIOB->BRR  = GPIO_BRR_BR_1;
 					}
 
 		} else {
@@ -396,10 +399,10 @@ void StartAB_Task(void const * argument)
 
   for(;;)
   {
-	while(ADC_FLAG_AB==0) {
+	/*while(ADC_FLAG_AB==0) {
 		taskYIELD();
 	}
-	ADC_FLAG_AB=0;
+	ADC_FLAG_AB=0;*/
 	//
 
 	if ( (Blocked_by_AB==0) && ((Global_AB<=AB_LOW)  || (Global_AB>=AB_MAX) ) ) {
@@ -448,10 +451,10 @@ void StartTEMP_Task(void const * argument)
 
   for(;;)
   {
-	  while(ADC_FLAG_TEMP==0) {
+	  /*while(ADC_FLAG_TEMP==0) {
 		  taskYIELD();
 	  }
-	  ADC_FLAG_TEMP=0;
+	  ADC_FLAG_TEMP=0;*/
 	  //
 
 	    if (Global_TEMP<TEMP_MAX) {
@@ -499,10 +502,10 @@ void StartLowPWR_Task(void const * argument)
 
   for(;;)
   {
-	   while(ADC_FLAG_16V==0) {
+	   /*while(ADC_FLAG_16V==0) {
 		   taskYIELD();
 	   }
-	   ADC_FLAG_16V=0;
+	   ADC_FLAG_16V=0;*/
 	   //
 
 	   if (Blocked_by_Perek==1) {
@@ -546,39 +549,64 @@ void StartCUR_Task(void const * argument)
   /* Infinite loop */
 
   uint32_t polka_stamp=xTaskGetTickCount();
+  double CUR_CHECK_SUMATOR=0;
 
   for(;;)
   {
-	  while(ADC_FLAG_CUR==0) {
+	  /*while(ADC_FLAG_CUR==0) {
 		  taskYIELD();
 	  }
-	  ADC_FLAG_CUR=0;
+	  ADC_FLAG_CUR=0;*/
 	  //
 	  if (CheckStamp(polka_stamp,ADC_POLKA105_DELAY)==1) {
-		  if (((100*ADC_FLAG_CUR_BLOCKED)/(1+ADC_FLAG_CUR_BLOCKED+ADC_FLAG_CUR_OK))>=ADC_POLKA105_MAX_CNT) {
-			  Blocked_by_150=1;
+		  if (Global_Power_Ind==0) {
+			  CUR_CHECK_SUMATOR=(double) (Global_Power_Sumator);
 		  } else {
-			  ADC_FLAG_CUR_BLOCKED=0;
-			  ADC_FLAG_CUR_OK=0;
+			  CUR_CHECK_SUMATOR=(double) (Global_Power_Sumator/Global_Power_Ind);
 		  }
+
+		  Global_Power_Ind=0;
+		  Global_Power_Sumator=0;
+
+		  CUR_CHECK_SUMATOR=sqrt(CUR_CHECK_SUMATOR);
+		  if (CUR_CHECK_SUMATOR>=POLKA_105) {
+			  Blocked_by_150=1;
+			  taskYIELD();
+		  }
+
+		  	  if (CUR_CHECK_SUMATOR>=POLKA_75) {
+		  		  Global_Power=100;
+		  	  }
+		  	  if ((CUR_CHECK_SUMATOR>=POLKA_50) && (CUR_CHECK_SUMATOR<POLKA_75)) {
+		  	  		 Global_Power=70;
+		  	  }
+		  	  if ((CUR_CHECK_SUMATOR>=POLKA_25) && (CUR_CHECK_SUMATOR<POLKA_50)) {
+		  	  	  	Global_Power=40;
+		  	  }
+		  	  if (CUR_CHECK_SUMATOR<POLKA_25)  {
+		  	  	  Global_Power=20;
+		  	  }
+
+
 		  polka_stamp=xTaskGetTickCount();
 	  }
 	  //
-	  if (Global_CURR>=POLKA_75) {
-		  Global_Power=100;
-	  }
-	  if ((Global_CURR>=POLKA_50) && (Global_CURR<POLKA_75)) {
-	  		 Global_Power=70;
-	  }
-	  if ((Global_CURR>=POLKA_25) && (Global_CURR<POLKA_50)) {
-	  	  	Global_Power=40;
-	  }
-	  if (Global_CURR<POLKA_25)  {
-	  	  Global_Power=20;
-	  }
 
 		// CUR LED
-			  	if ((Global_Power>75) || (Blocked_by_Klapan==1) || (Blocked_by_150==1)) {
+	  if ( (Blocked_by_Klapan==1) || (Blocked_by_150==1)) {
+		  LED_Blink(LED_2_GPIO_Port,LED_2_Pin,500);
+		  osDelay(500);
+	  } else {
+		  if (Global_Power<50) {
+			  //HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
+			  GPIOA->BRR  = GPIO_BRR_BR_10;
+
+		  } else {
+			  //HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_SET);
+			  GPIOA->BSRR  = GPIO_BSRR_BS_10;
+		  }
+	  }
+	  /*if ((Global_Power>75) || (Blocked_by_Klapan==1) || (Blocked_by_150==1)) {
 			  		HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_SET);
 			  	} else {
 					if ((Global_Power<75) && (Global_Power>=50)) {
@@ -592,7 +620,8 @@ void StartCUR_Task(void const * argument)
 					if (Global_Power<25) {
 						HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
 					}
-			  	}
+
+			  	}*/
 
 
 		taskYIELD();

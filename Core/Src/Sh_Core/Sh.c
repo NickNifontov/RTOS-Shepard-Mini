@@ -22,6 +22,9 @@ volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
 
 volatile uint8_t Global_Power=0;
 
+volatile uint64_t Global_Power_Sumator=0;
+volatile uint32_t Global_Power_Ind=0;
+
 volatile uint16_t Global_AB=0;
 volatile uint16_t Global_16V=0;
 volatile uint16_t Global_TEMP=0;
@@ -45,13 +48,10 @@ volatile uint8_t INV_STATE=0; // 0-off
 
 volatile uint8_t KLAPAN_SIGN=0;
 
-volatile uint8_t ADC_FLAG_TEMP=0;
-volatile uint8_t ADC_FLAG_AB=0;
-volatile uint8_t ADC_FLAG_16V=0;
-volatile uint8_t ADC_FLAG_CUR=0;
-
-volatile uint16_t ADC_FLAG_CUR_BLOCKED=0;
-volatile uint16_t ADC_FLAG_CUR_OK=0;
+//volatile uint8_t ADC_FLAG_TEMP=0;
+//volatile uint8_t ADC_FLAG_AB=0;
+//volatile uint8_t ADC_FLAG_16V=0;
+//volatile uint8_t ADC_FLAG_CUR=0;
 
 /* ==============   BOARD GLOBAL VAR END      ============== */
 
@@ -77,21 +77,29 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc1)
 {
 	Global_TEMP=aADCxConvertedData[2]/ADC_OVERSAMPLING;
 	Global_16V=aADCxConvertedData[3]/ADC_OVERSAMPLING;
-	ADC_FLAG_TEMP=1;
-	ADC_FLAG_16V=1;
+	//ADC_FLAG_TEMP=1;
+	//ADC_FLAG_16V=1;
 }
 
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc1)
 {
 	Global_AB=aADCxConvertedData[1]/ADC_OVERSAMPLING;
 	Global_CURR=aADCxConvertedData[0]/ADC_OVERSAMPLING;
-	ADC_FLAG_AB=1;
-	ADC_FLAG_CUR=1;
-	if ((Global_CURR>POLKA_105) && (Blocked_by_150==0)) {
-		ADC_FLAG_CUR_BLOCKED++;
+	//ADC_FLAG_AB=1;
+	//ADC_FLAG_CUR=1;
+
+	Global_Power_Sumator=Global_Power_Sumator+Global_CURR*Global_CURR;
+	Global_Power_Ind++;
+	/*if (Blocked_by_150==0) {
+			if (Global_CURR>POLKA_105)  {
+				ADC_FLAG_CUR_BLOCKED++;
+			} else {
+				ADC_FLAG_CUR_OK++;
+			}
 	} else {
-		ADC_FLAG_CUR_OK++;
-	}
+		ADC_FLAG_CUR_BLOCKED=1;
+		ADC_FLAG_CUR_OK=0;
+	}*/
 }
 /* ==============   ADC END      ============== */
 

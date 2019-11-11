@@ -35,7 +35,7 @@ void Enable_SH_DEBUG(void);
 /* Definition of ADCx conversions data table size */
 #define ADC_CONVERTED_DATA_BUFFER_SIZE   ((uint32_t)  4)   /* Size of array aADCxConvertedData[] */
 
-#define ADC_OVERSAMPLING 16
+#define ADC_OVERSAMPLING 8
 
 /* Variable containing ADC conversions data */
 extern volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
@@ -55,6 +55,9 @@ extern volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
 #define TEMP_ROLLBACK 2100
 
 extern volatile uint8_t Global_Power;
+
+extern volatile uint64_t Global_Power_Sumator;
+extern volatile uint32_t Global_Power_Ind;
 
 extern volatile uint16_t Global_AB;
 extern volatile uint16_t Global_16V;
@@ -76,16 +79,12 @@ extern volatile uint8_t INV_STATE;
 
 extern volatile uint8_t KLAPAN_SIGN;
 
-extern volatile uint8_t ADC_FLAG_TEMP;
-extern volatile uint8_t ADC_FLAG_AB;
-extern volatile uint8_t ADC_FLAG_16V;
-extern volatile uint8_t ADC_FLAG_CUR;
+//extern volatile uint8_t ADC_FLAG_TEMP;
+//extern volatile uint8_t ADC_FLAG_AB;
+//extern volatile uint8_t ADC_FLAG_16V;
+//extern volatile uint8_t ADC_FLAG_CUR;
 
-extern volatile uint16_t ADC_FLAG_CUR_BLOCKED;
-extern volatile uint16_t ADC_FLAG_CUR_OK;
-
-#define ADC_POLKA105_MAX_CNT 40
-#define ADC_POLKA105_DELAY 4
+#define ADC_POLKA105_DELAY 2
 #define POLKA_LEVEL (uint16_t) (400)
 #define POLKA_150 ((uint16_t)  (POLKA_LEVEL*1.5))
 #define POLKA_105 ((uint16_t)  (POLKA_LEVEL*1.05))
