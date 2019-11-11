@@ -45,6 +45,14 @@ volatile uint8_t INV_STATE=0; // 0-off
 
 volatile uint8_t KLAPAN_SIGN=0;
 
+volatile uint8_t ADC_FLAG_TEMP=0;
+volatile uint8_t ADC_FLAG_AB=0;
+volatile uint8_t ADC_FLAG_16V=0;
+volatile uint8_t ADC_FLAG_CUR=0;
+
+volatile uint16_t ADC_FLAG_CUR_BLOCKED=0;
+volatile uint16_t ADC_FLAG_CUR_OK=0;
+
 /* ==============   BOARD GLOBAL VAR END      ============== */
 
 /* ==============   ADC BEGIN    ============== */
@@ -69,13 +77,21 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc1)
 {
 	Global_TEMP=aADCxConvertedData[2]/ADC_OVERSAMPLING;
 	Global_16V=aADCxConvertedData[3]/ADC_OVERSAMPLING;
+	ADC_FLAG_TEMP=1;
+	ADC_FLAG_16V=1;
 }
-
 
 void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc1)
 {
 	Global_AB=aADCxConvertedData[1]/ADC_OVERSAMPLING;
 	Global_CURR=aADCxConvertedData[0]/ADC_OVERSAMPLING;
+	ADC_FLAG_AB=1;
+	ADC_FLAG_CUR=1;
+	if ((Global_CURR>POLKA_105) && (Blocked_by_150==0)) {
+		ADC_FLAG_CUR_BLOCKED++;
+	} else {
+		ADC_FLAG_CUR_OK++;
+	}
 }
 /* ==============   ADC END      ============== */
 

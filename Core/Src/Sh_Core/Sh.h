@@ -76,8 +76,18 @@ extern volatile uint8_t INV_STATE;
 
 extern volatile uint8_t KLAPAN_SIGN;
 
+extern volatile uint8_t ADC_FLAG_TEMP;
+extern volatile uint8_t ADC_FLAG_AB;
+extern volatile uint8_t ADC_FLAG_16V;
+extern volatile uint8_t ADC_FLAG_CUR;
+
+extern volatile uint16_t ADC_FLAG_CUR_BLOCKED;
+extern volatile uint16_t ADC_FLAG_CUR_OK;
+
+#define ADC_POLKA105_MAX_CNT 40
+#define ADC_POLKA105_DELAY 4
 #define POLKA_LEVEL (uint16_t) (400)
-#define POLKA_120 ((uint16_t)  (POLKA_LEVEL*1.2))
+#define POLKA_150 ((uint16_t)  (POLKA_LEVEL*1.5))
 #define POLKA_105 ((uint16_t)  (POLKA_LEVEL*1.05))
 #define POLKA_25 ((uint16_t)  (POLKA_LEVEL*0.25))
 #define POLKA_50 ((uint16_t)  (POLKA_LEVEL*0.5))

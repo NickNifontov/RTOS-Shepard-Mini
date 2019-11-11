@@ -396,6 +396,12 @@ void StartAB_Task(void const * argument)
 
   for(;;)
   {
+	while(ADC_FLAG_AB==0) {
+		taskYIELD();
+	}
+	ADC_FLAG_AB=0;
+	//
+
 	if ( (Blocked_by_AB==0) && ((Global_AB<=AB_LOW)  || (Global_AB>=AB_MAX) ) ) {
 		Blocked_by_AB=1;
 		ab_stamp=0;
@@ -442,6 +448,12 @@ void StartTEMP_Task(void const * argument)
 
   for(;;)
   {
+	  while(ADC_FLAG_TEMP==0) {
+		  taskYIELD();
+	  }
+	  ADC_FLAG_TEMP=0;
+	  //
+
 	    if (Global_TEMP<TEMP_MAX) {
 		  if ((Blocked_by_TEMP==1) && (Global_TEMP<=TEMP_ROLLBACK)) {
 			  if (temp_stamp==0) {
@@ -487,6 +499,12 @@ void StartLowPWR_Task(void const * argument)
 
   for(;;)
   {
+	   while(ADC_FLAG_16V==0) {
+		   taskYIELD();
+	   }
+	   ADC_FLAG_16V=0;
+	   //
+
 	   if (Blocked_by_Perek==1) {
 		   Blocked_by_LPWR=0;
 		   lpwr_stamp=0;
@@ -527,8 +545,25 @@ void StartCUR_Task(void const * argument)
   /* USER CODE BEGIN StartLowPWR_Task */
   /* Infinite loop */
 
+  uint32_t polka_stamp=xTaskGetTickCount();
+
   for(;;)
   {
+	  while(ADC_FLAG_CUR==0) {
+		  taskYIELD();
+	  }
+	  ADC_FLAG_CUR=0;
+	  //
+	  if (CheckStamp(polka_stamp,ADC_POLKA105_DELAY)==1) {
+		  if (((100*ADC_FLAG_CUR_BLOCKED)/(1+ADC_FLAG_CUR_BLOCKED+ADC_FLAG_CUR_OK))>=ADC_POLKA105_MAX_CNT) {
+			  Blocked_by_150=1;
+		  } else {
+			  ADC_FLAG_CUR_BLOCKED=0;
+			  ADC_FLAG_CUR_OK=0;
+		  }
+		  polka_stamp=xTaskGetTickCount();
+	  }
+	  //
 	  if (Global_CURR>=POLKA_75) {
 		  Global_Power=100;
 	  }
@@ -559,7 +594,8 @@ void StartCUR_Task(void const * argument)
 					}
 			  	}
 
-	  taskYIELD();
+
+		taskYIELD();
   }
   /* USER CODE END StartCUR_Task */
 }
