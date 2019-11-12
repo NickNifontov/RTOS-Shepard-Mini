@@ -176,8 +176,45 @@ void ADC1_COMP_IRQHandler(void)
   /* USER CODE BEGIN ADC1_COMP_IRQn 0 */
 
   /* USER CODE END ADC1_COMP_IRQn 0 */
-  HAL_COMP_IRQHandler(&hcomp2);
-  HAL_ADC_IRQHandler(&hadc);
+  //HAL_COMP_IRQHandler(&hcomp2);
+  //HAL_ADC_IRQHandler(&hadc);
+
+
+	  /*uint32_t exti_line = COMP_GET_EXTI_LINE(hcomp->Instance);
+
+	  if(READ_BIT(EXTI->PR, exti_line) != RESET)
+	  {
+	    if(READ_BIT(COMP12_COMMON->CSR, COMP_CSR_WINMODE) != 0)
+	    {
+	      WRITE_REG(EXTI->PR, (COMP_EXTI_LINE_COMP1 | COMP_EXTI_LINE_COMP2));
+	    }
+	    else
+	    {
+	      WRITE_REG(EXTI->PR, exti_line);
+	    }*/
+
+	 // uint32_t exti_line = COMP_GET_EXTI_LINE(hcomp->Instance);
+	  if(READ_BIT(EXTI->PR, COMP_EXTI_LINE_COMP2) != RESET) {
+	    GPIOA->BRR  = GPIO_BRR_BR_6;
+	    GPIOA->BSRR  = GPIO_BSRR_BS_7;
+	    GPIOB->BRR  = GPIO_BRR_BR_1;
+	    Blocked_by_Klapan=1;
+
+	    //HAL_COMP_IRQHandler(&hcomp2);
+	    WRITE_REG(EXTI->PR, COMP_EXTI_LINE_COMP2);
+	  }
+
+	  if(LL_ADC_IsActiveFlag_AWD1(ADC1) != 0) {
+	      GPIOA->BRR  = GPIO_BRR_BR_6;
+	      GPIOA->BSRR  = GPIO_BSRR_BS_7;
+	      GPIOB->BRR  = GPIO_BRR_BR_1;
+	      Blocked_by_150=1;
+	  }
+
+	  HAL_ADC_IRQHandler(&hadc);
+
+
+
   /* USER CODE BEGIN ADC1_COMP_IRQn 1 */
 
   /* USER CODE END ADC1_COMP_IRQn 1 */

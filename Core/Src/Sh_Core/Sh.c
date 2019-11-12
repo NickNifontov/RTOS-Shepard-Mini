@@ -56,21 +56,17 @@ volatile uint8_t KLAPAN_SIGN=0;
 /* ==============   BOARD GLOBAL VAR END      ============== */
 
 /* ==============   ADC BEGIN    ============== */
-void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc1)
+/*void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc1)
 {
-	//if(hadc1 == &hadc) {
 	ShutDown_with_Power_Off();
 	Blocked_by_150=1;
-	//}
-}
+}*/
 
-void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp)
+/*void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp)
 {
-    //if (hcomp == &hcomp2) {
 	ShutDown_with_Power_Off();
     Blocked_by_Klapan=1;
-    //}
-}
+}*/
 
 
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc1)

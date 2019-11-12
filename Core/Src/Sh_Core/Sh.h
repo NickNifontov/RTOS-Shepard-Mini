@@ -22,6 +22,9 @@
 
 #include "stm32l031xx.h"
 
+#include "stm32l0xx_ll_adc.h"
+//#include "stm32l0xx_ll_comp.h"
+
 
 #include "Sh_Cfg.h"
 #include "Sh_LED.h"
@@ -35,7 +38,7 @@ void Enable_SH_DEBUG(void);
 /* Definition of ADCx conversions data table size */
 #define ADC_CONVERTED_DATA_BUFFER_SIZE   ((uint32_t)  4)   /* Size of array aADCxConvertedData[] */
 
-#define ADC_OVERSAMPLING 8
+#define ADC_OVERSAMPLING 16
 
 /* Variable containing ADC conversions data */
 extern volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
