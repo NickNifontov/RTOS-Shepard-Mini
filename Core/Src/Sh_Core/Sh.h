@@ -54,7 +54,7 @@ extern volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
 #define TEMP_COLRSTART 2200
 #define TEMP_ROLLBACK 2100
 
-extern volatile uint8_t Global_Power;
+extern volatile uint16_t Global_Power;
 
 extern volatile uint64_t Global_Power_Sumator;
 extern volatile uint32_t Global_Power_Ind;
@@ -86,11 +86,12 @@ extern volatile uint8_t KLAPAN_SIGN;
 
 #define ADC_POLKA105_DELAY 2
 #define POLKA_LEVEL (uint16_t) (400)
-#define POLKA_150 ((uint16_t)  (POLKA_LEVEL*1.5))
+#define POLKA_140 ((uint16_t)  (POLKA_LEVEL*1.4))
 #define POLKA_105 ((uint16_t)  (POLKA_LEVEL*1.05))
 #define POLKA_25 ((uint16_t)  (POLKA_LEVEL*0.25))
 #define POLKA_50 ((uint16_t)  (POLKA_LEVEL*0.5))
 #define POLKA_75 ((uint16_t)  (POLKA_LEVEL*0.75))
+#define POLKA_10 ((uint16_t)  (POLKA_LEVEL*0.1))
 
 
 #define LPWR_MIN  1100

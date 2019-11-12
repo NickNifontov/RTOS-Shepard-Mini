@@ -20,7 +20,7 @@ void Enable_SH_DEBUG(void) {
 /* ==============   BOARD GLOBAL VAR BEGIN    ============== */
 volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
 
-volatile uint8_t Global_Power=0;
+volatile uint16_t Global_Power=0;
 
 volatile uint64_t Global_Power_Sumator=0;
 volatile uint32_t Global_Power_Ind=0;
@@ -88,8 +88,10 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc1)
 	//ADC_FLAG_AB=1;
 	//ADC_FLAG_CUR=1;
 
-	Global_Power_Sumator=Global_Power_Sumator+Global_CURR*Global_CURR;
-	Global_Power_Ind++;
+	if (Global_CURR>POLKA_10) {
+		Global_Power_Sumator=Global_Power_Sumator+Global_CURR*Global_CURR;
+		Global_Power_Ind++;
+	}
 	/*if (Blocked_by_150==0) {
 			if (Global_CURR>POLKA_105)  {
 				ADC_FLAG_CUR_BLOCKED++;

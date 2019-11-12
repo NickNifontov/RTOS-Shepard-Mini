@@ -571,10 +571,11 @@ void StartCUR_Task(void const * argument)
 		  CUR_CHECK_SUMATOR=sqrt(CUR_CHECK_SUMATOR);
 		  if (CUR_CHECK_SUMATOR>=POLKA_105) {
 			  Blocked_by_150=1;
-			  taskYIELD();
 		  }
 
-		  	  if (CUR_CHECK_SUMATOR>=POLKA_75) {
+		  Global_Power=(uint32_t) ((CUR_CHECK_SUMATOR*100)/POLKA_LEVEL);
+
+		  	/*  if (CUR_CHECK_SUMATOR>=POLKA_75) {
 		  		  Global_Power=100;
 		  	  }
 		  	  if ((CUR_CHECK_SUMATOR>=POLKA_50) && (CUR_CHECK_SUMATOR<POLKA_75)) {
@@ -586,26 +587,28 @@ void StartCUR_Task(void const * argument)
 		  	  if (CUR_CHECK_SUMATOR<POLKA_25)  {
 		  	  	  Global_Power=20;
 		  	  }
+			*/
 
+			// CUR LED
+			  if ( (Blocked_by_Klapan==1) || (Blocked_by_150==1) || (Global_Power>=90)) {
+				  //LED_Blink(LED_2_GPIO_Port,LED_2_Pin,500);
+				  //osDelay(500);
+				  HAL_GPIO_TogglePin(LED_2_GPIO_Port,LED_2_Pin);
+			  } else {
+				  if (Global_Power<50) {
+					  //HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
+					  GPIOA->BRR  = GPIO_BRR_BR_10;
+
+				  }
+				  if ((Global_Power>=50) && (Global_Power<90)) {
+					  GPIOA->BSRR  = GPIO_BSRR_BS_10;
+				  }
+			  }
 
 		  polka_stamp=xTaskGetTickCount();
 	  }
 	  //
 
-		// CUR LED
-	  if ( (Blocked_by_Klapan==1) || (Blocked_by_150==1)) {
-		  LED_Blink(LED_2_GPIO_Port,LED_2_Pin,500);
-		  osDelay(500);
-	  } else {
-		  if (Global_Power<50) {
-			  //HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
-			  GPIOA->BRR  = GPIO_BRR_BR_10;
-
-		  } else {
-			  //HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_SET);
-			  GPIOA->BSRR  = GPIO_BSRR_BS_10;
-		  }
-	  }
 	  /*if ((Global_Power>75) || (Blocked_by_Klapan==1) || (Blocked_by_150==1)) {
 			  		HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_SET);
 			  	} else {
