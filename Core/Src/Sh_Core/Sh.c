@@ -88,6 +88,11 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc1)
 		Global_Power_Sumator=Global_Power_Sumator+Global_CURR*Global_CURR;
 		Global_Power_Ind++;
 	}
+
+	if (Global_CURR>POLKA_150) {
+		ShutDown_with_Power_Off();
+		Blocked_by_150=1;
+	}
 	/*if (Blocked_by_150==0) {
 			if (Global_CURR>POLKA_105)  {
 				ADC_FLAG_CUR_BLOCKED++;
