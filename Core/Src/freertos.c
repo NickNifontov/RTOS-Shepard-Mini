@@ -216,6 +216,7 @@ void StartLoop_Task(void const * argument)
 						GPIOB->BSRR  = GPIO_BSRR_BS_1;
 						Blocked_by_Klapan=0;
 						Blocked_by_150=0;
+						Blocked_by_Klapan_CNT=0;
 						osDelay(1000);
 						//HAL_GPIO_WritePin(BLOCK_POWER_GPIO_Port, BLOCK_POWER_Pin, GPIO_PIN_RESET);
 						GPIOB->BRR  = GPIO_BRR_BR_1;
@@ -558,7 +559,28 @@ void StartCUR_Task(void const * argument)
 	  }
 	  ADC_FLAG_CUR=0;*/
 	  //
+
+	  if (xTaskGetTickCount()-polka_stamp>250) {
+	  	  		  	  	  	  // CUR LED
+	  	  		  			  if ( (Blocked_by_Klapan==1) || (Blocked_by_150==1)) {
+	  	  		  				  //LED_Blink(LED_2_GPIO_Port,LED_2_Pin,500);
+	  	  		  				  //osDelay(500);
+	  	  		  				  HAL_GPIO_TogglePin(LED_2_GPIO_Port,LED_2_Pin);
+	  	  		  			  } else {
+	  	  		  				  if (Global_Power<50) {
+	  	  		  					  //HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
+	  	  		  					  GPIOA->BRR  = GPIO_BRR_BR_10;
+
+	  	  		  				  }
+	  	  		  				  if (Global_Power>=50) {
+	  	  		  					  GPIOA->BSRR  = GPIO_BSRR_BS_10;
+	  	  		  				  }
+	  	  		  			  }
+	  	  	  }
+
+
 	  if (CheckStamp(polka_stamp,ADC_POLKA105_DELAY)==1) {
+
 		  if (Global_Power_Ind==0) {
 			  CUR_CHECK_SUMATOR=(double) (Global_Power_Sumator);
 		  } else {
@@ -572,6 +594,12 @@ void StartCUR_Task(void const * argument)
 		  if (CUR_CHECK_SUMATOR>=POLKA_105) {
 			  Blocked_by_150=1;
 		  }
+
+		  if( (CUR_CHECK_SUMATOR<POLKA_95) && (Blocked_by_Klapan_CNT<4) ) {
+			  Blocked_by_Klapan_CNT=0;
+		  }
+
+
 
 		  Global_Power=(uint32_t) ((CUR_CHECK_SUMATOR*100)/POLKA_LEVEL);
 
@@ -590,24 +618,6 @@ void StartCUR_Task(void const * argument)
 			*/
 
 		  polka_stamp=xTaskGetTickCount();
-	  }
-
-	  if (CheckStamp(polka_stamp,1)==1) {
-		  	  	  	  // CUR LED
-		  			  if ( (Blocked_by_Klapan==1) || (Blocked_by_150==1) || (Global_Power>=90)) {
-		  				  //LED_Blink(LED_2_GPIO_Port,LED_2_Pin,500);
-		  				  //osDelay(500);
-		  				  HAL_GPIO_TogglePin(LED_2_GPIO_Port,LED_2_Pin);
-		  			  } else {
-		  				  if (Global_Power<50) {
-		  					  //HAL_GPIO_WritePin(LED_2_GPIO_Port,LED_2_Pin, GPIO_PIN_RESET);
-		  					  GPIOA->BRR  = GPIO_BRR_BR_10;
-
-		  				  }
-		  				  if ((Global_Power>=50) && (Global_Power<90)) {
-		  					  GPIOA->BSRR  = GPIO_BSRR_BS_10;
-		  				  }
-		  			  }
 	  }
 	  //
 

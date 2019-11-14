@@ -42,6 +42,8 @@ volatile uint8_t Blocked_by_TEMP=1;
 
 volatile uint8_t Blocked_by_Klapan=0;
 
+volatile uint8_t Blocked_by_Klapan_CNT=0;
+
 volatile uint8_t Blocked_by_150=0;
 
 volatile uint8_t INV_STATE=0; // 0-off
@@ -53,14 +55,13 @@ volatile uint8_t KLAPAN_SIGN=0;
 //volatile uint8_t ADC_FLAG_16V=0;
 //volatile uint8_t ADC_FLAG_CUR=0;
 
-/* ==============   BOARD GLOBAL VAR END      ============== */
 
 /* ==============   ADC BEGIN    ============== */
-/*void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc1)
+void HAL_ADC_LevelOutOfWindowCallback(ADC_HandleTypeDef* hadc1)
 {
 	ShutDown_with_Power_Off();
 	Blocked_by_150=1;
-}*/
+}
 
 /*void HAL_COMP_TriggerCallback(COMP_HandleTypeDef *hcomp)
 {
@@ -84,12 +85,12 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc1)
 	//ADC_FLAG_AB=1;
 	//ADC_FLAG_CUR=1;
 
-	if (Global_CURR>POLKA_10) {
+	if (Global_CURR>=POLKA_15) {
 		Global_Power_Sumator=Global_Power_Sumator+Global_CURR*Global_CURR;
 		Global_Power_Ind++;
 	}
 
-	if (Global_CURR>POLKA_150) {
+	if (Global_CURR>POLKA_180) {
 		ShutDown_with_Power_Off();
 		Blocked_by_150=1;
 	}
