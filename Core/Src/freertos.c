@@ -595,7 +595,7 @@ void StartCUR_Task(void const * argument)
 			  Blocked_by_150=1;
 		  }
 
-		  if( (CUR_CHECK_SUMATOR<POLKA_95) && (Blocked_by_Klapan_CNT<4) ) {
+		  if( (CUR_CHECK_SUMATOR<POLKA_95) && (Blocked_by_Klapan_CNT<=KLAPAN_CNT) ) {
 			  Blocked_by_Klapan_CNT=0;
 		  }
 

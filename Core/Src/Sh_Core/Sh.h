@@ -90,7 +90,6 @@ extern volatile uint8_t KLAPAN_SIGN;
 //extern volatile uint8_t ADC_FLAG_CUR;
 
 #define KLAPAN_CNT 3
-#define KLAPAN_CNT_POROG 4
 
 #define ADC_POLKA105_DELAY 2
 #define POLKA_LEVEL (uint16_t) (560)
