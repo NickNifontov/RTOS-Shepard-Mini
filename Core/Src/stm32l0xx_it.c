@@ -209,8 +209,10 @@ void ADC1_COMP_IRQHandler(void)
 			GPIOA->BSRR  = GPIO_BSRR_BS_7;
 			GPIOB->BRR  = GPIO_BRR_BR_1;
 
+			uint16_t microsec_pause=Blocked_by_Klapan_CNT*250;
+
 			//10 000 microsec
-			for (uint16_t i=0; i<500; ++i) {
+			for (uint16_t i=0; i<microsec_pause; ++i) {
 						// 1 microsec
 						for (int j = 0; j < 32; ++j) {
 							__asm__ __volatile__("nop\n\t":::"memory");

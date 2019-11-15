@@ -90,9 +90,36 @@ void HAL_ADC_ConvHalfCpltCallback(ADC_HandleTypeDef* hadc1)
 		Global_Power_Ind++;
 	}
 
-	if (Global_CURR>POLKA_180) {
-		ShutDown_with_Power_Off();
-		Blocked_by_150=1;
+	if (Global_CURR>POLKA_150) {
+
+				Blocked_by_Klapan_CNT++;
+
+				if (Blocked_by_Klapan_CNT>=KLAPAN_CNT) {
+					ShutDown_with_Power_Off();
+					Blocked_by_150=1;
+				} else {
+					GPIOA->BRR  = GPIO_BRR_BR_6;
+					GPIOA->BSRR  = GPIO_BSRR_BS_7;
+					GPIOB->BRR  = GPIO_BRR_BR_1;
+
+					uint16_t microsec_pause=Blocked_by_Klapan_CNT*250;
+
+					//10 000 microsec
+					for (uint16_t i=0; i<microsec_pause; ++i) {
+								// 1 microsec
+								for (int j = 0; j < 32; ++j) {
+									__asm__ __volatile__("nop\n\t":::"memory");
+								}
+					}
+
+					GPIOA->BSRR  = GPIO_BSRR_BS_6;
+					GPIOA->BRR  = GPIO_BRR_BR_7;
+
+					GPIOB->BSRR  = GPIO_BSRR_BS_1;
+				}
+
+		//ShutDown_with_Power_Off();
+		//Blocked_by_150=1;
 	}
 	/*if (Blocked_by_150==0) {
 			if (Global_CURR>POLKA_105)  {
