@@ -1,0 +1,79 @@
+
+(rules PCB Cooler
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 2743)
+    (layer_rule F.Cu
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.3)
+    )
+    (layer_rule B.Cu
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 1.7)
+    )
+  )
+  (rule
+    (width 400.0)
+    (clear 200.2)
+    (clear 200.0 (type smd_to_turn_gap))
+    (clear 50.0 (type smd_smd))
+  )
+  (padstack "Via[0-1]_800:400_um"
+    (shape
+      (circle F.Cu 800.0 0.0 0.0)
+    )
+    (shape
+      (circle B.Cu 800.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    "Via[0-1]_800:400_um" "Via[0-1]_800:400_um" default
+  )
+  (via 
+    "Via[0-1]_800:400_um-kicad_default" "Via[0-1]_800:400_um" "kicad_default"
+  )
+  (via_rule
+    default "Via[0-1]_800:400_um"
+  )
+  (via_rule
+    "kicad_default" "Via[0-1]_800:400_um-kicad_default"
+  )
+  (class default
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 400.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class "kicad_default"
+    "TEMP_2" "COOLER_CH1" SHUTDOWN "16V_DRV" GND +3V3 "Net-(C2-Pad2)" SWIM
+    "Net-(Q1-Pad1)" NRST "Net-(C5-Pad2)" "Net-(C7-Pad2)" "Net-(C8-Pad2)" "CMD_COOLER2" "CMD_COOLER1" "Net-(D7-Pad1)"
+    "Net-(D8-Pad1)" "Net-(Q2-Pad1)" "COOLER_CH2" POWER "LED_TEMP" "LED_POWER" "Net-(D9-Pad2)" "Net-(D10-Pad2)"
+    Sense1 "Net-(Q3-Pad1)" Sense2 "COOLER_CH0" "CMD_COOLER0" "Net-(D11-Pad2)"
+    (clearance_class "kicad_default")
+    (via_rule kicad_default)
+    (rule
+      (width 400.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+)

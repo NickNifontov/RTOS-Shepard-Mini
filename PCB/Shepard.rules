@@ -1,0 +1,144 @@
+
+(rules PCB Shepard
+  (snap_angle 
+    fortyfive_degree
+  )
+  (autoroute_settings
+    (fanout off)
+    (autoroute on)
+    (postroute on)
+    (vias on)
+    (via_costs 50)
+    (plane_via_costs 5)
+    (start_ripup_costs 100)
+    (start_pass_no 45951)
+    (layer_rule F.Cu
+      (active on)
+      (preferred_direction horizontal)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 2.6)
+    )
+    (layer_rule B.Cu
+      (active on)
+      (preferred_direction vertical)
+      (preferred_direction_trace_costs 1.0)
+      (against_preferred_direction_trace_costs 1.6)
+    )
+  )
+  (rule
+    (width 400.0)
+    (clear 200.2)
+    (clear 200.0 (type smd_to_turn_gap))
+    (clear 500.2 (type default_"15V_1_2"))
+    (clear 50.0 (type smd_smd))
+    (clear 500.2 (type smd_"15V_1_2"))
+    (clear 500.2 (type "kicad_default"_"15V_1_2"))
+    (clear 500.2 (type +48v_"15V_1_2"))
+    (clear 500.2 (type "15V_1_2"_"15V_1_2"))
+  )
+  (padstack "Via[0-1]_800:400_um"
+    (shape
+      (circle F.Cu 800.0 0.0 0.0)
+    )
+    (shape
+      (circle B.Cu 800.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (padstack "Via[0-1]_1200:600_um"
+    (shape
+      (circle F.Cu 1200.0 0.0 0.0)
+    )
+    (shape
+      (circle B.Cu 1200.0 0.0 0.0)
+    )
+    (attach off)
+  )
+  (via 
+    "Via[0-1]_800:400_um" "Via[0-1]_800:400_um" default
+  )
+  (via 
+    "Via[0-1]_1200:600_um" "Via[0-1]_1200:600_um" default
+  )
+  (via 
+    "Via[0-1]_800:400_um-kicad_default" "Via[0-1]_800:400_um" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_1200:600_um-kicad_default" "Via[0-1]_1200:600_um" "kicad_default"
+  )
+  (via 
+    "Via[0-1]_800:400_um-+48v" "Via[0-1]_800:400_um" +48v
+  )
+  (via 
+    "Via[0-1]_1200:600_um-+48v" "Via[0-1]_1200:600_um" +48v
+  )
+  (via 
+    "Via[0-1]_800:400_um-15V_1_2" "Via[0-1]_800:400_um" "15V_1_2"
+  )
+  (via 
+    "Via[0-1]_1200:600_um-15V_1_2" "Via[0-1]_1200:600_um" "15V_1_2"
+  )
+  (via_rule
+    default "Via[0-1]_800:400_um"
+  )
+  (via_rule
+    "kicad_default" "Via[0-1]_800:400_um-kicad_default"
+  )
+  (via_rule
+    +48v "Via[0-1]_1200:600_um-+48v"
+  )
+  (via_rule
+    "15V_1_2" "Via[0-1]_1200:600_um-15V_1_2"
+  )
+  (class default
+    (clearance_class default)
+    (via_rule default)
+    (rule
+      (width 400.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class "kicad_default"
+    CURRENT "KLAPAN_COMP" AB "Net-(BZ1-Pad2)" "TEMP_ADC" +3V3 "Net-(Q2-Pad1)" "Net-(D17-Pad2)"
+    "AB_RAW" "Net-(BAT1-Pad1)" "Net-(BAT1-Pad3)" "POLKA_TO_PU_READY" "Net-(D11-Pad2)" PWM1 PWM2 "COIL1_B_OUT"
+    "POLKA_SUMATOR" "Net-(CURRENT2-Pad1)" "Net-(CURRENT2-Pad3)" "PWM2-OUT" "Net-(Q6-Pad1)" "Net-(Q7-Pad1)" "PWM1-OUT" "BLOCK_PORT"
+    "15V1_OK" "15V2_OK" "Net-(Q8-Pad1)" "Net-(Q8-Pad3)" "Net-(Q10-Pad1)" "Net-(Q10-Pad3)" "BLOCK_PU" "TEMP_2"
+    "Net-(BZ1-Pad1)" PEREKLUCHALKA "Net-(R11-Pad1)" "Net-(R25-Pad1)" "Net-(Q1-Pad1)" "16V_ADC" SD BUZZER
+    LED "Net-(D13-Pad2)" "COOLER_1_OUT" "Net-(Q4-Pad1)" "COOLER_1" "LED_2" DIO CLK
+    NRST "Net-(R68-Pad2)" "Net-(C11-Pad1)" "BLOCK_POWER" "BLOCK_PORT_2" "Net-(D15-Pad2)" "Net-(J8-Pad2)" "EX_A"
+    "Net-(BAT2-Pad2)"
+    (clearance_class "kicad_default")
+    (via_rule kicad_default)
+    (rule
+      (width 400.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class +48v
+    +48V "COIL1_A" "COIL1_B" "COIL2_A" "COIL2_B" "COIL1_A_OUT" "COIL2_A_OUT" "Net-(D20-Pad1)"
+    "XL_FB" "Net-(D12-Pad1)" "XL_EN" "Net-(R28-Pad1)"
+    (clearance_class +48v)
+    (via_rule +48v)
+    (rule
+      (width 800.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+  (class "15V_1_2"
+    +15V "Net-(Q9-Pad1)" "Net-(Q11-Pad1)"
+    (clearance_class "15V_1_2")
+    (via_rule 15V_1_2)
+    (rule
+      (width 1000.0)
+    )
+    (circuit 
+      (use_layer F.Cu B.Cu)
+    )
+  )
+)

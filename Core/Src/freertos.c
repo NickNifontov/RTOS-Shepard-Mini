@@ -591,7 +591,8 @@ void StartCUR_Task(void const * argument)
 		  Global_Power_Sumator=0;
 
 		  CUR_CHECK_SUMATOR=sqrt(CUR_CHECK_SUMATOR);
-		  if (CUR_CHECK_SUMATOR>=POLKA_105) {
+		  //if (CUR_CHECK_SUMATOR>=POLKA_105) {
+		  if (CUR_CHECK_SUMATOR>=POLKA_LEVEL) {
 			  Blocked_by_150=1;
 		  }
 

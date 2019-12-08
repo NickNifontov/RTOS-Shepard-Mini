@@ -47,7 +47,7 @@ extern volatile uint16_t   aADCxConvertedData[ADC_CONVERTED_DATA_BUFFER_SIZE];
 #define BUZZER_OPORA_MIN ((uint16_t) (BUZZER_OPORA*0.995))
 #define BUZZER_OPORA_MAX ((uint16_t) (BUZZER_OPORA*1.005))
 
-#define AB_LOW ((uint16_t) (BUZZER_OPORA*0.90))
+#define AB_LOW ((uint16_t) (BUZZER_OPORA*0.92))
 #define AB_ROLLBACK ((uint16_t) (BUZZER_OPORA*1.1))
 #define AB_MAX ((uint16_t) (BUZZER_OPORA*1.29))
 #define AB_COLDRUN ((uint16_t) (BUZZER_OPORA*1.05))
@@ -96,7 +96,7 @@ extern volatile uint8_t KLAPAN_SIGN;
 #define POLKA_200 ((uint16_t)  (POLKA_LEVEL*2.0))
 #define POLKA_150 ((uint16_t)  (POLKA_LEVEL*1.5))
 #define POLKA_95 ((uint16_t)  (POLKA_LEVEL*0.95))
-#define POLKA_105 ((uint16_t)  (POLKA_LEVEL*1.05))
+//#define POLKA_105 ((uint16_t)  (POLKA_LEVEL*1.05))
 #define POLKA_25 ((uint16_t)  (POLKA_LEVEL*0.25))
 #define POLKA_50 ((uint16_t)  (POLKA_LEVEL*0.5))
 #define POLKA_75 ((uint16_t)  (POLKA_LEVEL*0.75))
@@ -107,13 +107,13 @@ extern volatile uint8_t KLAPAN_SIGN;
 #define LPWR_MAX  2100
 extern volatile uint8_t Blocked_by_LPWR;
 
-#define BUZZER_MAX_LENGTH 10 //sec
-#define AB_MAX_LENGTH 10 //sec
-#define COOLER_MAX_LENGTH 10 //sec
-#define TEMP_DELAY_LENGTH 10 //sec
+#define BUZZER_MAX_LENGTH 255 // 5 min
+#define AB_MAX_LENGTH 120 //2 min
+#define COOLER_MAX_LENGTH 60 //sec
+#define TEMP_DELAY_LENGTH 120 // 5 min
 #define TEMP_ROLLBACK_DELAY_LENGTH 10 //sec
 #define LPWR_DELAY_LENGTH 2 //sec
-#define RESTART_MAX_LENGTH 10 //sec
+#define RESTART_MAX_LENGTH 60 //sec
 
 void ShutDown_with_Power_Off(void);
 void ShutDown_with_Power_On(void);
